@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import Animate from 'react-smooth';
 import classNames from 'classnames';
 import _ from 'lodash';
+import animationDecorator from '../util/AnimationDecorator/';
 import pureRender from '../util/PureRender';
 import Curve from '../shape/Curve';
 import Dot from '../shape/Dot';
@@ -14,11 +15,12 @@ import LabelList from '../component/LabelList';
 import ErrorBar from './ErrorBar';
 import { uniqueId, interpolateNumber } from '../util/DataUtils';
 import { PRESENTATION_ATTRIBUTES, EVENT_ATTRIBUTES, LEGEND_TYPES, filterEventAttributes,
-  getPresentationAttributes, isSsr, findAllByType, getReactEventByType } from '../util/ReactUtils';
+  getPresentationAttributes, findAllByType, getReactEventByType } from '../util/ReactUtils';
 import { getCateCoordinateOfLine, getValueByDataKey } from '../util/ChartUtils';
 
 const FACTOR = 1.0000001;
 
+@animationDecorator
 @pureRender
 class Line extends Component {
 
@@ -60,20 +62,6 @@ class Line extends Component {
       y: PropTypes.number,
       value: PropTypes.value,
     })),
-    onAnimationStart: PropTypes.func,
-    onAnimationEnd: PropTypes.func,
-
-    isAnimationActive: PropTypes.bool,
-    animationBegin: PropTypes.number,
-    animationDuration: PropTypes.number,
-    animationEasing: PropTypes.oneOf([
-      'ease',
-      'ease-in',
-      'ease-out',
-      'ease-in-out',
-      'linear',
-    ]),
-    animationId: PropTypes.number,
   };
 
   static defaultProps = {
@@ -87,14 +75,7 @@ class Line extends Component {
     strokeWidth: 1,
     fill: '#fff',
     points: [],
-    isAnimationActive: !isSsr(),
-    animationBegin: 0,
-    animationDuration: 1500,
-    animationEasing: 'ease',
     hide: false,
-
-    onAnimationStart: () => {},
-    onAnimationEnd: () => {},
   };
 
   /**
@@ -133,25 +114,17 @@ class Line extends Component {
   };
 
 
-  state = {
-    isAnimationFinished: true,
-    totalLength: 0,
-  };
+  // eslint-disable-next-line class-methods-use-this
+  state() {
+    return {
+      totalLength: 0,
+    };
+  }
 
   /* eslint-disable  react/no-did-mount-set-state */
   componentDidMount() {
-    if (!this.props.isAnimationActive) { return; }
-
     const totalLength = this.getTotalLength();
     this.setState({ totalLength });
-  }
-
-  componentWillReceiveProps(nextProps) {
-    const { animationId, points } = this.props;
-
-    if (nextProps.animationId !== animationId) {
-      this.cachePrevData(points);
-    }
   }
 
   getTotalLength() {
@@ -185,10 +158,6 @@ class Line extends Component {
 
   id = uniqueId('recharts-line-');
 
-  cachePrevData = (points) => {
-    this.setState({ prevPoints: points });
-  };
-
   pathRef = (node) => {
     this.mainCurve = node;
   };
@@ -202,21 +171,9 @@ class Line extends Component {
     }
 
     return result;
-  }
-
-  handleAnimationEnd = () => {
-    this.setState({ isAnimationFinished: true });
-    this.props.onAnimationEnd();
-  };
-
-  handleAnimationStart = () => {
-    this.setState({ isAnimationFinished: false });
-    this.props.onAnimationStart();
-  };
+  }  
 
   renderErrorBar() {
-    if (this.props.isAnimationActive && !this.state.isAnimationFinished) { return null; }
-
     const { points, xAxis, yAxis, layout, children } = this.props;
     const errorBarItems = findAllByType(children, ErrorBar);
 
@@ -257,11 +214,6 @@ class Line extends Component {
   }
 
   renderDots() {
-    const { isAnimationActive } = this.props;
-
-    if (isAnimationActive && !this.state.isAnimationFinished) {
-      return null;
-    }
     const { dot, points } = this.props;
     const lineProps = getPresentationAttributes(this.props);
     const customDotProps = getPresentationAttributes(dot);
@@ -313,8 +265,8 @@ class Line extends Component {
         from={{ t: 0 }}
         to={{ t: 1 }}
         key={`line-${animationId}`}
-        onAnimationEnd={this.handleAnimationEnd}
-        onAnimationStart={this.handleAnimationStart}
+        onAnimationEnd={this.handleAnimationEnd.bind(this)}
+        onAnimationStart={this.handleAnimationStart.bind(this)}
       >
         {
           ({ t }) => {
