@@ -12,6 +12,7 @@ export default {
     'ease-out',
     'ease-in-out',
     'linear',
+    'spring',
   ]),
   animationId: PropTypes.number,
 };

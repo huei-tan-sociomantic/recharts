@@ -11,7 +11,7 @@ function componentWillReceiveProps(nextProps) {
 
   if (nextProps.animationId !== animationId) {
     if (points) this.setState({ prevPoints: points }); // Line Area Scatter Radar
-    if (data) this.setState({ prevData: data }); // Bar
+    if (data) this.setState({ prevData: data }); // Bar RadialBar
     if (baseLine) this.setState({ prevBaseLine: baseLine }); // Area
   }
 }
