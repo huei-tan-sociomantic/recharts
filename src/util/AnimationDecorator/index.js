@@ -10,7 +10,7 @@ function componentWillReceiveProps(nextProps) {
   const { animationId, points, data, baseLine } = this.props;
 
   if (nextProps.animationId !== animationId) {
-    if (points) this.setState({ prevPoints: points }); // Line Area Scatter
+    if (points) this.setState({ prevPoints: points }); // Line Area Scatter Radar
     if (data) this.setState({ prevData: data }); // Bar
     if (baseLine) this.setState({ prevBaseLine: baseLine }); // Area
   }
