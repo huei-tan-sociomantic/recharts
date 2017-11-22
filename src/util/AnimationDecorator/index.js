@@ -6,6 +6,7 @@ import Animate from 'react-smooth';
 import PropTypes from './propTypes';
 import DefaultProps from './defaultProps';
 import InitialState from './initialState';
+import { getDisplayName } from '../ReactUtils';
 
 function componentWillReceiveProps(nextProps) {
   const {
@@ -72,30 +73,33 @@ function renderLabelsFn(fn) {
   };
 }
 
-function renderWithAnimation(fn, ...args) {
-  const {
-    isAnimationActive, animationBegin,
-    animationDuration, animationEasing, animationId,
-  } = this.props;
+function renderWithAnimation(componentName) {
+  return function (fn, ...args) {
+    const {
+      isAnimationActive, animationBegin,
+      animationDuration, animationEasing, animationId,
+    } = this.props;
 
-  return (
-    <Animate
-      begin={animationBegin}
-      duration={animationDuration}
-      isActive={isAnimationActive}
-      easing={animationEasing}
-      from={{ t: 0 }}
-      to={{ t: 1 }}
-      key={`line-${animationId}`} // check this constructor and assign the displayName
-      onAnimationEnd={this.handleAnimationEnd.bind(this)}
-      onAnimationStart={this.handleAnimationStart.bind(this)}
-    >
-      {
-        props => fn.call(this, props, ...args)
-      }
-    </Animate>
-  );
+    return (
+      <Animate
+        begin={animationBegin}
+        duration={animationDuration}
+        isActive={isAnimationActive}
+        easing={animationEasing}
+        from={{ t: 0 }}
+        to={{ t: 1 }}
+        key={`${componentName}-${animationId}`}
+        onAnimationEnd={this.handleAnimationEnd.bind(this)}
+        onAnimationStart={this.handleAnimationStart.bind(this)}
+      >
+        {
+          props => fn.call(this, props, ...args)
+        }
+      </Animate>
+    );
+  };
 }
+
 export default function animationDecorator(component) {
 
   const {
@@ -120,7 +124,7 @@ export default function animationDecorator(component) {
   component.prototype.componentWillReceiveProps = componentWillReceiveProps;
   component.prototype.handleAnimationStart = handleAnimationStart;
   component.prototype.handleAnimationEnd = handleAnimationEnd;
-  component.prototype.renderWithAnimation = renderWithAnimation;
+  component.prototype.renderWithAnimation = renderWithAnimation(getDisplayName(component));
 
   if (renderDots) {
     component.prototype.renderDots = renderDotsFn(renderDots);
