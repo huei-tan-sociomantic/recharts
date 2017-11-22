@@ -7,12 +7,17 @@ import DefaultProps from './defaultProps';
 import InitialState from './initialState';
 
 function componentWillReceiveProps(nextProps) {
-  const { animationId, points, data, baseLine } = this.props;
+  const {
+    isAnimationActive, animationId, points, data, baseLine, sectors,
+  } = this.props;
 
-  if (nextProps.animationId !== animationId) {
+  if (nextProps.isAnimationActive !== isAnimationActive) {
+    if (sectors) this.setState({ prevSectors: [] }); // Pie
+  } else if (nextProps.animationId !== animationId) {
     if (points) this.setState({ prevPoints: points }); // Line Area Scatter Radar
     if (data) this.setState({ prevData: data }); // Bar RadialBar
     if (baseLine) this.setState({ prevBaseLine: baseLine }); // Area
+    if (sectors) this.setState({ prevSectors: sectors }); // Pie
   }
 }
 
@@ -56,6 +61,16 @@ function renderLabelListFn(fn) {
   };
 }
 
+function renderLabelsFn(fn) {
+  return function () {
+    const { isAnimationActive } = this.props;
+    const { isAnimationFinished } = this.state;
+    if (isAnimationActive && !isAnimationFinished) return null;
+
+    return fn.call(this);
+  };
+}
+
 function renderWithAnimation(fn, ...args) {
   const {
     isAnimationActive, animationBegin,
@@ -82,7 +97,9 @@ function renderWithAnimation(fn, ...args) {
 }
 export default function animationDecorator(component) {
 
-  const { renderDots, renderErrorBar, renderLabelList, state } = component.prototype;
+  const {
+    renderDots, renderErrorBar, renderLabelList, renderLabels, state,
+  } = component.prototype;
 
   component.propTypes = {
     ...component.propTypes,
@@ -90,8 +107,8 @@ export default function animationDecorator(component) {
   };
 
   component.defaultProps = {
-    ...component.defaultProps,
     ...DefaultProps,
+    ...component.defaultProps,
   };
 
   component.prototype.state = Object.assign({},
@@ -114,5 +131,9 @@ export default function animationDecorator(component) {
 
   if (renderLabelList) {
     component.prototype.renderLabelList = renderLabelListFn(renderLabelList);
+  }
+
+  if (renderLabels) {
+    component.prototype.renderLabels = renderLabelsFn(renderLabels);
   }
 }
