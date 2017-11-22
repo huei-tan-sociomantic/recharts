@@ -1,5 +1,6 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable func-names */
+import _ from 'lodash';
 import React from 'react';
 import Animate from 'react-smooth';
 import PropTypes from './propTypes';
@@ -112,7 +113,7 @@ export default function animationDecorator(component) {
   };
 
   component.prototype.state = Object.assign({},
-    state && state.call(this),
+    state && (_.isFunction(state) ? state.call(this) : state),
     { ...InitialState },
   );
 

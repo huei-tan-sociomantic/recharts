@@ -112,13 +112,7 @@ class Line extends Component {
     return { points, layout, ...offset };
   };
 
-
-  // eslint-disable-next-line class-methods-use-this
-  state() {
-    return {
-      totalLength: 0,
-    };
-  }
+  state = { totalLength: 0 }
 
   /* eslint-disable  react/no-did-mount-set-state */
   componentDidMount() {
