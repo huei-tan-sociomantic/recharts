@@ -170,7 +170,7 @@ class Scatter extends Component {
     });
   }
 
-  renderSymbolsWithAnimation(t) {
+  renderSymbolsWithAnimation({ t }) {
     const { points } = this.props;
     const { prevPoints } = this.state;
 

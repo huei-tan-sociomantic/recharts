@@ -255,7 +255,7 @@ class Line extends Component {
     return <Curve {...curveProps} pathRef={this.pathRef} />;
   }
 
-  renderCurveWithAnimation(t, needClip) {
+  renderCurveWithAnimation({ t }, needClip) {
     const { points, strokeDasharray, ...other } = this.props;
     const { prevPoints, totalLength } = this.state;
 

@@ -75,7 +75,7 @@ function renderWithAnimation(fn, ...args) {
       onAnimationStart={this.handleAnimationStart.bind(this)}
     >
       {
-        ({ t }) => fn.call(this, t, ...args)
+        props => fn.call(this, props, ...args)
       }
     </Animate>
   );
@@ -115,7 +115,4 @@ export default function animationDecorator(component) {
   if (renderLabelList) {
     component.prototype.renderLabelList = renderLabelListFn(renderLabelList);
   }
-
-  console.log(component.prototype.state);
-  console.log('yo man decorator', component.prototype.renderDots);
 }

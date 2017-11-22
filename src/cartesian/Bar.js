@@ -188,7 +188,7 @@ class Bar extends Component {
     });
   }
 
-  renderRectanglesWithAnimation(t) {
+  renderRectanglesWithAnimation({ t }) {
     const { data, layout } = this.props;
     const { prevData } = this.state;
 

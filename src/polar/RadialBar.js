@@ -192,7 +192,7 @@ class RadialBar extends Component {
     });
   }
 
-  renderSectorsWithAnimation(t) {
+  renderSectorsWithAnimation({ t }) {
     const { data } = this.props;
     const { prevData } = this.state;
 

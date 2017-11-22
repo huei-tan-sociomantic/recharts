@@ -296,7 +296,7 @@ class Area extends Component {
     );
   }
 
-  renderAreaWithAnimation(t, needClip) {
+  renderAreaWithAnimation({ t }, needClip) {
     const { points, baseLine } = this.props;
     const { prevPoints, prevBaseLine } = this.state;
 

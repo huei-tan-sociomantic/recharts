@@ -169,7 +169,7 @@ class Radar extends Component {
     );
   }
 
-  renderPolygonWithAnimation(t) {
+  renderPolygonWithAnimation({ t }) {
     const { points } = this.props;
     const { prevPoints } = this.state;
 
