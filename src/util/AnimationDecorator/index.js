@@ -7,11 +7,12 @@ import DefaultProps from './defaultProps';
 import InitialState from './initialState';
 
 function componentWillReceiveProps(nextProps) {
-  const { animationId, points, data } = this.props;
+  const { animationId, points, data, baseLine } = this.props;
 
   if (nextProps.animationId !== animationId) {
-    if (points) this.setState({ prevPoints: points }); // Line
+    if (points) this.setState({ prevPoints: points }); // Line Area
     if (data) this.setState({ prevData: data }); // Bar
+    if (baseLine) this.setState({ prevBaseLine: baseLine }); // Area
   }
 }
 
@@ -60,6 +61,7 @@ function renderWithAnimation(fn, ...args) {
     isAnimationActive, animationBegin,
     animationDuration, animationEasing, animationId,
   } = this.props;
+
   return (
     <Animate
       begin={animationBegin}
@@ -68,7 +70,7 @@ function renderWithAnimation(fn, ...args) {
       easing={animationEasing}
       from={{ t: 0 }}
       to={{ t: 1 }}
-      key={`line-${animationId}`}
+      key={`line-${animationId}`} // check this constructor and assign the displayName
       onAnimationEnd={this.handleAnimationEnd.bind(this)}
       onAnimationStart={this.handleAnimationStart.bind(this)}
     >

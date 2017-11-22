@@ -4,13 +4,13 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import animationDecorator from '../util/AnimationDecorator/';
 import _ from 'lodash';
 import Rectangle from '../shape/Rectangle';
 import Layer from '../container/Layer';
 import ErrorBar from './ErrorBar';
 import Cell from '../component/Cell';
 import LabelList from '../component/LabelList';
+import animationDecorator from '../util/AnimationDecorator/';
 import pureRender from '../util/PureRender';
 import { uniqueId, mathSign, interpolateNumber } from '../util/DataUtils';
 import { PRESENTATION_ATTRIBUTES, EVENT_ATTRIBUTES, LEGEND_TYPES, findChildByType,
