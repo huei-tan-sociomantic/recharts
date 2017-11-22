@@ -1,14 +1,17 @@
 /* eslint-disable no-param-reassign */
-
+/* eslint-disable func-names */
+import React from 'react';
+import Animate from 'react-smooth';
 import PropTypes from './propTypes';
 import DefaultProps from './defaultProps';
 import InitialState from './initialState';
 
 function componentWillReceiveProps(nextProps) {
-  const { animationId, points } = this.props;
+  const { animationId, points, data } = this.props;
 
   if (nextProps.animationId !== animationId) {
-    this.setState({ prevPoints: points });
+    if (points) this.setState({ prevPoints: points }); // Line
+    if (data) this.setState({ prevData: data }); // Bar
   }
 }
 
@@ -23,30 +26,61 @@ function handleAnimationStart() {
 }
 
 function renderDotsFn(fn) {
-  // eslint-disable-next-line func-names
   return function () {
     const { isAnimationActive } = this.props;
-
-    if (isAnimationActive && !this.state.isAnimationFinished) {
-      return null;
-    }
+    const { isAnimationFinished } = this.state;
+    if (isAnimationActive && !isAnimationFinished) return null;
 
     return fn.call(this);
   };
 }
 
 function renderErrorBarFn(fn) {
-  // eslint-disable-next-line func-names
   return function () {
-    if (this.props.isAnimationActive && !this.state.isAnimationFinished) { return null; }
+    const { isAnimationActive } = this.props;
+    const { isAnimationFinished } = this.state;
+    if (isAnimationActive && !isAnimationFinished) return null;
 
     return fn.call(this);
   };
 }
 
+function renderLabelListFn(fn) {
+  return function () {
+    const { isAnimationActive } = this.props;
+    const { isAnimationFinished } = this.state;
+    if (isAnimationActive && !isAnimationFinished) return null;
+
+    return fn.call(this);
+  };
+}
+
+function renderWithAnimation(fn, ...args) {
+  const {
+    isAnimationActive, animationBegin,
+    animationDuration, animationEasing, animationId,
+  } = this.props;
+  return (
+    <Animate
+      begin={animationBegin}
+      duration={animationDuration}
+      isActive={isAnimationActive}
+      easing={animationEasing}
+      from={{ t: 0 }}
+      to={{ t: 1 }}
+      key={`line-${animationId}`}
+      onAnimationEnd={this.handleAnimationEnd.bind(this)}
+      onAnimationStart={this.handleAnimationStart.bind(this)}
+    >
+      {
+        ({ t }) => fn.call(this, t, ...args)
+      }
+    </Animate>
+  );
+}
 export default function animationDecorator(component) {
 
-  const { renderDots, renderErrorBar } = component.prototype;
+  const { renderDots, renderErrorBar, renderLabelList, state } = component.prototype;
 
   component.propTypes = {
     ...component.propTypes,
@@ -58,14 +92,15 @@ export default function animationDecorator(component) {
     ...DefaultProps,
   };
 
-  component.prototype.state = {
-    ...component.prototype.state.call(this),
-    ...InitialState,
-  };
+  component.prototype.state = Object.assign({},
+    state && state.call(this),
+    { ...InitialState },
+  );
 
   component.prototype.componentWillReceiveProps = componentWillReceiveProps;
   component.prototype.handleAnimationStart = handleAnimationStart;
   component.prototype.handleAnimationEnd = handleAnimationEnd;
+  component.prototype.renderWithAnimation = renderWithAnimation;
 
   if (renderDots) {
     component.prototype.renderDots = renderDotsFn(renderDots);
@@ -73,6 +108,10 @@ export default function animationDecorator(component) {
 
   if (renderErrorBar) {
     component.prototype.renderErrorBar = renderErrorBarFn(renderErrorBar);
+  }
+
+  if (renderLabelList) {
+    component.prototype.renderLabelList = renderLabelListFn(renderLabelList);
   }
 
   console.log(component.prototype.state);

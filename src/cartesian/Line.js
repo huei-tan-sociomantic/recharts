@@ -3,7 +3,6 @@
  */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import Animate from 'react-smooth';
 import classNames from 'classnames';
 import _ from 'lodash';
 import animationDecorator from '../util/AnimationDecorator/';
@@ -235,6 +234,11 @@ class Line extends Component {
     return <Layer className="recharts-line-dots" key="dots">{dots}</Layer>;
   }
 
+  renderLabelList() {
+    const { points } = this.props;
+    return LabelList.renderCallByParent(this.props, points);
+  }
+
   renderCurveStatically(points, needClip, props) {
     const { type, layout, connectNulls } = this.props;
     const curveProps = {
@@ -251,60 +255,41 @@ class Line extends Component {
     return <Curve {...curveProps} pathRef={this.pathRef} />;
   }
 
-  renderCurveWithAnimation(needClip) {
-    const { points, strokeDasharray, isAnimationActive, animationBegin,
-      animationDuration, animationEasing, animationId, ...other } = this.props;
+  renderCurveWithAnimation(t, needClip) {
+    const { points, strokeDasharray, ...other } = this.props;
     const { prevPoints, totalLength } = this.state;
 
-    return (
-      <Animate
-        begin={animationBegin}
-        duration={animationDuration}
-        isActive={isAnimationActive}
-        easing={animationEasing}
-        from={{ t: 0 }}
-        to={{ t: 1 }}
-        key={`line-${animationId}`}
-        onAnimationEnd={this.handleAnimationEnd.bind(this)}
-        onAnimationStart={this.handleAnimationStart.bind(this)}
-      >
-        {
-          ({ t }) => {
-            if (prevPoints) {
-              const stepData = points.map((entry, index) => {
-                if (prevPoints[index]) {
-                  const prev = prevPoints[index];
-                  const interpolatorX = interpolateNumber(prev.x, entry.x);
-                  const interpolatorY = interpolateNumber(prev.y, entry.y);
+    if (prevPoints) {
+      const stepData = points.map((entry, index) => {
+        if (prevPoints[index]) {
+          const prev = prevPoints[index];
+          const interpolatorX = interpolateNumber(prev.x, entry.x);
+          const interpolatorY = interpolateNumber(prev.y, entry.y);
 
-                  return { ...entry, x: interpolatorX(t), y: interpolatorY(t) };
-                }
-
-                return entry;
-              });
-              return this.renderCurveStatically(stepData, needClip);
-            }
-            const interpolator = interpolateNumber(0, totalLength);
-            const curLength = interpolator(t);
-            let currentStrokeDasharray;
-
-            if (strokeDasharray) {
-              const lines = strokeDasharray.split(/[,\s]+/gim)
-                .map(num => parseFloat(num));
-              currentStrokeDasharray = this.getStrokeDasharray(
-                curLength, totalLength, lines
-              );
-            } else {
-              currentStrokeDasharray = `${curLength}px ${totalLength - curLength}px`;
-            }
-
-            return this.renderCurveStatically(points, needClip, {
-              strokeDasharray: currentStrokeDasharray,
-            });
-          }
+          return { ...entry, x: interpolatorX(t), y: interpolatorY(t) };
         }
-      </Animate>
-    );
+
+        return entry;
+      });
+      return this.renderCurveStatically(stepData, needClip);
+    }
+    const interpolator = interpolateNumber(0, totalLength);
+    const curLength = interpolator(t);
+    let currentStrokeDasharray;
+
+    if (strokeDasharray) {
+      const lines = strokeDasharray.split(/[,\s]+/gim)
+        .map(num => parseFloat(num));
+      currentStrokeDasharray = this.getStrokeDasharray(
+        curLength, totalLength, lines
+      );
+    } else {
+      currentStrokeDasharray = `${curLength}px ${totalLength - curLength}px`;
+    }
+
+    return this.renderCurveStatically(points, needClip, {
+      strokeDasharray: currentStrokeDasharray,
+    });
   }
 
   renderCurve(needClip) {
@@ -313,7 +298,7 @@ class Line extends Component {
 
     if (isAnimationActive && points && points.length &&
       ((!prevPoints && totalLength > 0) || !_.isEqual(prevPoints, points))) {
-      return this.renderCurveWithAnimation(needClip);
+      return this.renderWithAnimation(this.renderCurveWithAnimation, needClip);
     }
 
     return this.renderCurveStatically(points, needClip);
@@ -321,11 +306,10 @@ class Line extends Component {
 
   render() {
     const { hide, dot, points, className, xAxis, yAxis, top, left,
-      width, height, isAnimationActive } = this.props;
+      width, height } = this.props;
 
     if (hide || !points || !points.length) { return null; }
 
-    const { isAnimationFinished } = this.state;
     const hasSinglePoint = points.length === 1;
     const layerClass = classNames('recharts-line', className);
     const needClip = (xAxis && xAxis.allowDataOverflow) || (yAxis && yAxis.allowDataOverflow);
@@ -342,8 +326,7 @@ class Line extends Component {
         {!hasSinglePoint && this.renderCurve(needClip)}
         {this.renderErrorBar()}
         {(hasSinglePoint || dot) && this.renderDots()}
-        {(!isAnimationActive || isAnimationFinished) &&
-          LabelList.renderCallByParent(this.props, points)}
+        {this.renderLabelList()}
       </Layer>
     );
   }
